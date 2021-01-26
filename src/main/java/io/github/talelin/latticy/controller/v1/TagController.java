@@ -2,14 +2,19 @@ package io.github.talelin.latticy.controller.v1;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.github.talelin.autoconfigure.exception.NotFoundException;
+import io.github.talelin.core.annotation.GroupRequired;
 import io.github.talelin.core.annotation.LoginRequired;
+import io.github.talelin.core.annotation.PermissionMeta;
+import io.github.talelin.core.annotation.PermissionModule;
 import io.github.talelin.latticy.common.mybatis.Page;
-import io.github.talelin.latticy.common.util.PageUtil;
+import io.github.talelin.latticy.dto.TagDTO;
 import io.github.talelin.latticy.model.TagDO;
 import io.github.talelin.latticy.model.ThemeDO;
 import io.github.talelin.latticy.service.TagService;
 import io.github.talelin.latticy.vo.PageResponseVO;
+import io.github.talelin.latticy.vo.UpdatedVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Max;
@@ -24,12 +29,24 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("tag")
+@PermissionModule(value = "Tag")
+@Validated
 public class TagController {
     @Autowired
     private TagService tagService;
 
+    @PutMapping("/{id}")
+    @PermissionMeta(value = "更新Tag")
+    @GroupRequired
+    public UpdatedVO update(@RequestBody @Validated TagDTO dto,
+                            @PathVariable @Positive Integer id) {
+        tagService.update(dto, id);
+        return new UpdatedVO();
+    }
+
     @GetMapping("/{id}")
     @LoginRequired
+    @PermissionMeta(value = "查询Tag")
     public TagDO get(@PathVariable(value = "id") @Positive(message = "{id.positive}") Integer id) {
         TagDO theme = tagService.getById(id);
         if (theme == null) {
@@ -47,15 +64,9 @@ public class TagController {
             @RequestParam(name = "page", required = false, defaultValue = "0")
             @Min(value = 0, message = "{page.number.min}") Integer page
     ) {
-        Page<ThemeDO> pager = new Page<>(page, count);
-        IPage<ThemeDO> paging = tagService.getBaseMapper().selectPage(pager, null);
-        return PageUtil.build(paging);
+        Page<TagDO> pager = new Page<>(page, count);
+        IPage<TagDO> paging = tagService.getBaseMapper().selectPage(pager, null);
+        return new PageResponseVO<>(paging.getTotal(), paging.getRecords(), paging.getCurrent(), paging.getSize());
     }
-
-//    @GetMapping("")
-//    public List<Tag> getHotSearchTag(@PathVariable Integer isHot) throws Exception{
-//        List<Tag> hotSearchTag = this.tagService.getHotSearchTag(isHot);
-//        return hotSearchTag;
-//    }
 
 }
