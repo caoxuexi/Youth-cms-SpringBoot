@@ -8,11 +8,15 @@ import io.github.talelin.core.annotation.PermissionMeta;
 import io.github.talelin.core.annotation.PermissionModule;
 import io.github.talelin.latticy.common.mybatis.Page;
 import io.github.talelin.latticy.dto.TagDTO;
+import io.github.talelin.latticy.dto.ThemeDTO;
 import io.github.talelin.latticy.model.TagDO;
 import io.github.talelin.latticy.model.ThemeDO;
 import io.github.talelin.latticy.service.TagService;
+import io.github.talelin.latticy.vo.CreatedVO;
+import io.github.talelin.latticy.vo.DeletedVO;
 import io.github.talelin.latticy.vo.PageResponseVO;
 import io.github.talelin.latticy.vo.UpdatedVO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -28,12 +32,22 @@ import java.util.List;
  * @date 2020/12/29 11:04
  */
 @RestController
-@RequestMapping("tag")
+@RequestMapping("/v1/tag")
 @PermissionModule(value = "Tag")
 @Validated
 public class TagController {
     @Autowired
     private TagService tagService;
+
+    @PostMapping("")
+    @PermissionMeta("创建Tag")
+    @GroupRequired
+    public CreatedVO create(@Validated @RequestBody TagDTO dto) {
+        TagDO tag = new TagDO();
+        BeanUtils.copyProperties(dto, tag);
+        tagService.save(tag);
+        return new CreatedVO();
+    }
 
     @PutMapping("/{id}")
     @PermissionMeta(value = "更新Tag")
@@ -42,6 +56,18 @@ public class TagController {
                             @PathVariable @Positive Integer id) {
         tagService.update(dto, id);
         return new UpdatedVO();
+    }
+
+    @DeleteMapping("/{id}")
+    @PermissionMeta("删除Tag")
+    @GroupRequired
+    public DeletedVO delete(@PathVariable @Positive(message = "{id.positive}") Integer id) {
+        TagDO theme = tagService.getById(id);
+        if (theme == null) {
+            throw new NotFoundException(30000);
+        }
+        tagService.getBaseMapper().deleteById(id);
+        return new DeletedVO();
     }
 
     @GetMapping("/{id}")
@@ -68,5 +94,4 @@ public class TagController {
         IPage<TagDO> paging = tagService.getBaseMapper().selectPage(pager, null);
         return new PageResponseVO<>(paging.getTotal(), paging.getRecords(), paging.getCurrent(), paging.getSize());
     }
-
 }
