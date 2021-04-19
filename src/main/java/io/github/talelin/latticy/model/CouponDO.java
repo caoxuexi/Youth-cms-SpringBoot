@@ -39,7 +39,7 @@ public class CouponDO {
      */
     private Integer type;
 
-    private Integer valitiy;
+    private Integer validity;
 
     private Integer activityId;
 
