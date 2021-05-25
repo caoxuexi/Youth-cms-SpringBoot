@@ -9,7 +9,7 @@ spring:
   # 数据源配置，请修改为你项目的实际配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    password: a752245683
+    password: axxxxxxxx
     url: jdbc:mysql://localhost:3306/glorious-youth?characterEncoding=utf-8&serverTimezone=GMT%2B8
     username: root
 
